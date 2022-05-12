@@ -16,7 +16,7 @@ typedef Widget IndicatorBuilder(BuildContext context, int mode);
  */
 abstract class Config {
   // How many distances should be dragged to trigger refresh
-  final double triggerDistance;
+  final double? triggerDistance;
 
   const Config({this.triggerDistance});
 }

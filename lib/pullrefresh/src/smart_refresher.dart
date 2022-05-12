@@ -45,18 +45,18 @@ class SmartRefresher extends StatefulWidget {
   // if open OverScroll if you use RefreshIndicator and LoadFooter
   final bool enableOverScroll;
   // upper and downer callback when you drag out of the distance
-  final OnRefresh onRefresh;
+  final OnRefresh? onRefresh;
   // This method will callback when the indicator changes from edge to edge.
-  final OnOffsetChange onOffsetChange;
+  final OnOffsetChange? onOffsetChange;
   //controll inner state
   final RefreshController controller;
 
   SmartRefresher({
-    Key key,
-    @required this.child,
-    IndicatorBuilder headerBuilder,
-    IndicatorBuilder footerBuilder,
-    RefreshController controller,
+    Key? key,
+    required this.child,
+    IndicatorBuilder? headerBuilder,
+    IndicatorBuilder? footerBuilder,
+    RefreshController? controller,
     this.headerConfig: const RefreshConfig(),
     this.footerConfig: const LoadConfig(),
     this.enableOverScroll: default_enableOverScroll,
@@ -82,7 +82,7 @@ class SmartRefresher extends StatefulWidget {
 
 class _SmartRefresherState extends State<SmartRefresher> {
   // listen the listen offset or on...
-  ScrollController get _scrollController => widget.controller.scrollController;
+  ScrollController? get _scrollController => widget.controller.scrollController;
   // the bool will check the user if dragging on the screen.
 //  bool _isDragging = false;
   // key to get height header of footer
@@ -102,10 +102,10 @@ class _SmartRefresherState extends State<SmartRefresher> {
     if ((notification.metrics.outOfRange)) {
       return false;
     }
-    GestureProcessor topWrap = _headerKey.currentState as GestureProcessor;
-    GestureProcessor bottomWrap = _footerKey.currentState as GestureProcessor;
-    if (widget.enablePullUp) bottomWrap.onDragStart(notification);
-    if (widget.enablePullDown) topWrap.onDragStart(notification);
+    GestureProcessor? topWrap = _headerKey.currentState as GestureProcessor?;
+    GestureProcessor? bottomWrap = _footerKey.currentState as GestureProcessor?;
+    if (widget.enablePullUp) bottomWrap!.onDragStart(notification);
+    if (widget.enablePullDown) topWrap!.onDragStart(notification);
     return false;
   }
 
@@ -113,19 +113,19 @@ class _SmartRefresherState extends State<SmartRefresher> {
   bool _handleScrollMoving(ScrollUpdateNotification notification) {
     if (_measure(notification) != -1.0)
       offsetLis.value = _measure(notification);
-    GestureProcessor topWrap = _headerKey.currentState as GestureProcessor;
-    GestureProcessor bottomWrap = _footerKey.currentState as GestureProcessor;
-    if (widget.enablePullUp) bottomWrap.onDragMove(notification);
-    if (widget.enablePullDown) topWrap.onDragMove(notification);
+    GestureProcessor? topWrap = _headerKey.currentState as GestureProcessor?;
+    GestureProcessor? bottomWrap = _footerKey.currentState as GestureProcessor?;
+    if (widget.enablePullUp) bottomWrap!.onDragMove(notification);
+    if (widget.enablePullDown) topWrap!.onDragMove(notification);
     return false;
   }
 
   //handle the scrollEndEvent
   bool _handleScrollEnd(ScrollNotification notification) {
-    GestureProcessor topWrap = _headerKey.currentState as GestureProcessor;
-    GestureProcessor bottomWrap = _footerKey.currentState as GestureProcessor;
-    if (widget.enablePullUp) bottomWrap.onDragEnd(notification);
-    if (widget.enablePullDown) topWrap.onDragEnd(notification);
+    GestureProcessor? topWrap = _headerKey.currentState as GestureProcessor?;
+    GestureProcessor? bottomWrap = _footerKey.currentState as GestureProcessor?;
+    if (widget.enablePullUp) bottomWrap!.onDragEnd(notification);
+    if (widget.enablePullDown) topWrap!.onDragEnd(notification);
     return false;
   }
 
@@ -165,13 +165,13 @@ class _SmartRefresherState extends State<SmartRefresher> {
         0) {
       return (notification.metrics.minScrollExtent -
               notification.metrics.pixels) /
-          widget.headerConfig.triggerDistance;
+          widget.headerConfig.triggerDistance!;
     } else if (notification.metrics.pixels -
             notification.metrics.maxScrollExtent >
         0) {
       return (notification.metrics.pixels -
               notification.metrics.maxScrollExtent) /
-          widget.footerConfig.triggerDistance;
+          widget.footerConfig.triggerDistance!;
     }
     return -1.0;
   }
@@ -180,15 +180,15 @@ class _SmartRefresherState extends State<SmartRefresher> {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _onAfterBuild();
     });
-    _scrollController.addListener(_handleOffsetCallback);
+    _scrollController!.addListener(_handleOffsetCallback);
     widget.controller._headerMode = topModeLis;
     widget.controller._footerMode = bottomModeLis;
   }
 
   void _handleOffsetCallback() {
     final double overscrollPastStart = math.max(
-        _scrollController.position.minScrollExtent -
-            _scrollController.position.pixels +
+        _scrollController!.position.minScrollExtent -
+            _scrollController!.position.pixels +
             (widget.headerConfig is RefreshConfig &&
                     (topModeLis.value == RefreshStatus.refreshing ||
                         topModeLis.value == RefreshStatus.completed ||
@@ -197,8 +197,8 @@ class _SmartRefresherState extends State<SmartRefresher> {
                 : 0.0),
         0.0);
     final double overscrollPastEnd = math.max(
-        _scrollController.position.pixels -
-            _scrollController.position.maxScrollExtent +
+        _scrollController!.position.pixels -
+            _scrollController!.position.maxScrollExtent +
             (widget.footerConfig is RefreshConfig &&
                     (bottomModeLis.value == RefreshStatus.refreshing ||
                         bottomModeLis.value == RefreshStatus.completed ||
@@ -209,21 +209,21 @@ class _SmartRefresherState extends State<SmartRefresher> {
     if (overscrollPastStart > overscrollPastEnd) {
       if (widget.headerConfig is RefreshConfig) {
         if (widget.onOffsetChange != null) {
-          widget.onOffsetChange(true, overscrollPastStart);
+          widget.onOffsetChange!(true, overscrollPastStart);
         }
       } else {
         if (widget.onOffsetChange != null) {
-          widget.onOffsetChange(true, overscrollPastStart);
+          widget.onOffsetChange!(true, overscrollPastStart);
         }
       }
     } else if (overscrollPastEnd > 0) {
       if (widget.footerConfig is RefreshConfig) {
         if (widget.onOffsetChange != null) {
-          widget.onOffsetChange(false, overscrollPastEnd);
+          widget.onOffsetChange!(false, overscrollPastEnd);
         }
       } else {
         if (widget.onOffsetChange != null) {
-          widget.onOffsetChange(false, overscrollPastEnd);
+          widget.onOffsetChange!(false, overscrollPastEnd);
         }
       }
     }
@@ -233,12 +233,12 @@ class _SmartRefresherState extends State<SmartRefresher> {
     switch (mode.value) {
       case RefreshStatus.refreshing:
         if (widget.onRefresh != null) {
-          widget.onRefresh(up);
+          widget.onRefresh!(up);
         }
         if (up && widget.headerConfig is RefreshConfig) {
           RefreshConfig config = widget.headerConfig as RefreshConfig;
-          _scrollController
-              .jumpTo(_scrollController.offset + config.visibleRange);
+          _scrollController!
+              .jumpTo(_scrollController!.offset + config.visibleRange);
         }
         break;
     }
@@ -247,8 +247,8 @@ class _SmartRefresherState extends State<SmartRefresher> {
   void _onAfterBuild() {
     if (widget.headerConfig is LoadConfig) {
       if ((widget.headerConfig as LoadConfig).bottomWhenBuild) {
-        _scrollController.jumpTo(-(_scrollController.position.pixels -
-            _scrollController.position.maxScrollExtent));
+        _scrollController!.jumpTo(-(_scrollController!.position.pixels -
+            _scrollController!.position.maxScrollExtent));
       }
     }
 
@@ -260,17 +260,17 @@ class _SmartRefresherState extends State<SmartRefresher> {
     });
     setState(() {
       if (widget.enablePullDown)
-        _headerHeight = _headerKey.currentContext.size.height;
+        _headerHeight = _headerKey.currentContext!.size!.height;
       if (widget.enablePullUp) {
-        _footerHeight = _footerKey.currentContext.size.height;
+        _footerHeight = _footerKey.currentContext!.size!.height;
       }
     });
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_handleOffsetCallback);
-    _scrollController.dispose();
+    _scrollController!.removeListener(_handleOffsetCallback);
+    _scrollController!.dispose();
     super.dispose();
   }
 
@@ -297,12 +297,12 @@ class _SmartRefresherState extends State<SmartRefresher> {
         up: up,
         onOffsetChange: (bool up, double offset) {
           if (widget.onOffsetChange != null) {
-            widget.onOffsetChange(
+            widget.onOffsetChange!(
                 up,
                 up
-                    ? -_scrollController.offset + offset
-                    : _scrollController.position.pixels -
-                        _scrollController.position.maxScrollExtent +
+                    ? -_scrollController!.offset + offset
+                    : _scrollController!.position.pixels -
+                        _scrollController!.position.maxScrollExtent +
                         offset);
           }
         },
@@ -367,15 +367,15 @@ class _SmartRefresherState extends State<SmartRefresher> {
 }
 
 abstract class Indicator extends StatefulWidget {
-  final int mode;
+  final int? mode;
 
-  const Indicator({Key key, this.mode}) : super(key: key);
+  const Indicator({Key? key, this.mode}) : super(key: key);
 }
 
 class RefreshController {
-  ValueNotifier<int> _headerMode;
-  ValueNotifier<int> _footerMode;
-  ScrollController scrollController;
+  late ValueNotifier<int> _headerMode;
+  late ValueNotifier<int> _footerMode;
+  ScrollController? scrollController;
 
   RefreshController() {
     scrollController = ScrollController();
@@ -393,15 +393,15 @@ class RefreshController {
   }
 
   void jumpTo(double offset) {
-    scrollController.jumpTo(offset);
+    scrollController!.jumpTo(offset);
   }
 
   Future<Null> animateTo(
     double offset, {
-    @required Duration duration,
-    @required Curve curve,
+    required Duration duration,
+    required Curve curve,
   }) {
-    return scrollController.animateTo(offset, duration: duration, curve: curve);
+    return scrollController!.animateTo(offset, duration: duration, curve: curve).then((value) => value as Null);
   }
 
   void sendBack(bool up, int mode) {

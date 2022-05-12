@@ -11,13 +11,13 @@ import 'default_constants.dart';
 import '../../pull_to_refresh.dart';
 
 abstract class Wrapper extends StatefulWidget {
-  final ValueNotifier<int> modeListener;
+  final ValueNotifier<int>? modeListener;
 
-  final IndicatorBuilder builder;
+  final IndicatorBuilder? builder;
 
   final bool up;
 
-  final double triggerDistance;
+  final double? triggerDistance;
 
   bool get _isRefreshing => this.mode == RefreshStatus.refreshing;
 
@@ -26,14 +26,14 @@ abstract class Wrapper extends StatefulWidget {
       this.mode != RefreshStatus.refreshing &&
       this.mode != RefreshStatus.canRefresh;
 
-  int get mode => this.modeListener.value;
+  int get mode => this.modeListener!.value;
 
-  set mode(int mode) => this.modeListener.value = mode;
+  set mode(int mode) => this.modeListener!.value = mode;
 
   Wrapper(
-      {Key key,
-      @required this.up,
-      @required this.modeListener,
+      {Key? key,
+      required this.up,
+      required this.modeListener,
       this.builder,
       this.triggerDistance})
       : assert(up != null, modeListener != null),
@@ -59,17 +59,17 @@ abstract class Wrapper extends StatefulWidget {
 class RefreshWrapper extends Wrapper {
   final int completeDuration;
 
-  final Function onOffsetChange;
+  final Function? onOffsetChange;
 
   final double visibleRange;
 
   RefreshWrapper({
-    Key key,
-    IndicatorBuilder builder,
-    ValueNotifier<int> modeLis,
+    Key? key,
+    IndicatorBuilder? builder,
+    ValueNotifier<int>? modeLis,
     this.onOffsetChange,
     this.completeDuration: default_completeDuration,
-    double triggerDistance,
+    double? triggerDistance,
     this.visibleRange: default_VisibleRange,
     bool up: true,
   })  : assert(up != null),
@@ -91,7 +91,7 @@ class RefreshWrapper extends Wrapper {
 class RefreshWrapperState extends State<RefreshWrapper>
     with TickerProviderStateMixin
     implements GestureProcessor {
-  AnimationController _sizeController;
+  late AnimationController _sizeController;
 
   /*
       up indicate drag from top (pull down)
@@ -107,17 +107,17 @@ class RefreshWrapperState extends State<RefreshWrapper>
     });
   }
 
-  int get mode => widget.modeListener.value;
+  int get mode => widget.modeListener!.value;
 
   double _measure(ScrollNotification notification) {
     if (widget.up) {
       return (notification.metrics.minScrollExtent -
               notification.metrics.pixels) /
-          widget.triggerDistance;
+          widget.triggerDistance!;
     } else {
       return (notification.metrics.pixels -
               notification.metrics.maxScrollExtent) /
-          widget.triggerDistance;
+          widget.triggerDistance!;
     }
   }
 
@@ -160,7 +160,7 @@ class RefreshWrapperState extends State<RefreshWrapper>
 
   void _handleOffsetCallBack() {
     if (widget.onOffsetChange != null) {
-      widget.onOffsetChange(
+      widget.onOffsetChange!(
           widget.up, _sizeController.value * widget.visibleRange);
     }
   }
@@ -182,7 +182,7 @@ class RefreshWrapperState extends State<RefreshWrapper>
           _dismiss();
         }).then((val) {
           widget.mode = RefreshStatus.idle;
-        });
+        } as FutureOr<_> Function(Null));
         break;
     }
     setState(() {});
@@ -191,7 +191,7 @@ class RefreshWrapperState extends State<RefreshWrapper>
   @override
   void dispose() {
     // TODO: implement dispose
-    widget.modeListener.removeListener(_handleModeChange);
+    widget.modeListener!.removeListener(_handleModeChange);
     _sizeController.removeListener(_handleOffsetCallBack);
     super.dispose();
   }
@@ -205,7 +205,7 @@ class RefreshWrapperState extends State<RefreshWrapper>
         lowerBound: minSpace,
         duration: const Duration(milliseconds: spaceAnimateMill))
       ..addListener(_handleOffsetCallBack);
-    widget.modeListener.addListener(_handleModeChange);
+    widget.modeListener!.addListener(_handleModeChange);
   }
 
   @override
@@ -218,13 +218,13 @@ class RefreshWrapperState extends State<RefreshWrapper>
             sizeFactor: _sizeController,
             child: new Container(height: widget.visibleRange),
           ),
-          widget.builder(context, widget.mode)
+          widget.builder!(context, widget.mode)
         ],
       );
     }
     return new Column(
       children: <Widget>[
-        widget.builder(context, widget.mode),
+        widget.builder!(context, widget.mode),
         new SizeTransition(
           sizeFactor: _sizeController,
           child: new Container(height: widget.visibleRange),
@@ -236,15 +236,15 @@ class RefreshWrapperState extends State<RefreshWrapper>
 
 //status: failed,nomore,idle,refreshing
 class LoadWrapper extends Wrapper {
-  final bool autoLoad;
+  final bool? autoLoad;
 
   LoadWrapper(
-      {Key key,
-      @required bool up,
-      @required ValueNotifier<int> modeListener,
-      double triggerDistance,
+      {Key? key,
+      required bool up,
+      required ValueNotifier<int> modeListener,
+      double? triggerDistance,
       this.autoLoad,
-      IndicatorBuilder builder})
+      IndicatorBuilder? builder})
       : assert(up != null, modeListener != null),
         super(
           key: key,
@@ -262,12 +262,12 @@ class LoadWrapper extends Wrapper {
 }
 
 class LoadWrapperState extends State<LoadWrapper> implements GestureProcessor {
-  Function _updateListener;
+  late Function _updateListener;
 
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return widget.builder(context, widget.mode);
+    return widget.builder!(context, widget.mode);
   }
 
   @override
@@ -277,13 +277,13 @@ class LoadWrapperState extends State<LoadWrapper> implements GestureProcessor {
     _updateListener = () {
       setState(() {});
     };
-    widget.modeListener.addListener(_updateListener);
+    widget.modeListener!.addListener(_updateListener as void Function());
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
-    widget.modeListener.removeListener(_updateListener);
+    widget.modeListener!.removeListener(_updateListener as void Function());
     super.dispose();
   }
 
@@ -299,12 +299,12 @@ class LoadWrapperState extends State<LoadWrapper> implements GestureProcessor {
 //      return;
 //    }
     if (widget._isRefreshing || widget._isComplete) return;
-    if (widget.autoLoad) {
+    if (widget.autoLoad!) {
       if (widget.up &&
-          notification.metrics.extentBefore <= widget.triggerDistance)
+          notification.metrics.extentBefore <= widget.triggerDistance!)
         widget.mode = RefreshStatus.refreshing;
       if (!widget.up &&
-          notification.metrics.extentAfter <= widget.triggerDistance)
+          notification.metrics.extentAfter <= widget.triggerDistance!)
         widget.mode = RefreshStatus.refreshing;
     }
   }
@@ -313,12 +313,12 @@ class LoadWrapperState extends State<LoadWrapper> implements GestureProcessor {
   void onDragEnd(ScrollNotification notification) {
     // TODO: implement onDragEnd
     if (widget._isRefreshing || widget._isComplete) return;
-    if (widget.autoLoad) {
+    if (widget.autoLoad!) {
       if (widget.up &&
-          notification.metrics.extentBefore <= widget.triggerDistance)
+          notification.metrics.extentBefore <= widget.triggerDistance!)
         widget.mode = RefreshStatus.refreshing;
       if (!widget.up &&
-          notification.metrics.extentAfter <= widget.triggerDistance)
+          notification.metrics.extentAfter <= widget.triggerDistance!)
         widget.mode = RefreshStatus.refreshing;
     }
   }
